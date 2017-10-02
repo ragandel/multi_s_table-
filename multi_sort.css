@@ -1,0 +1,71 @@
+table.sort {
+    border-spacing: 2em;
+    margin-bottom: 1em;
+    margin-top:1em;
+}
+
+table.table-sort {
+    border-spacing: 2em;
+    margin-bottom: 1em;
+    margin-top:1em;
+}
+
+table.td {
+    border: 1px solid #CCCCCC;
+}
+
+table.sort thead td,th{
+    cursor:pointer;
+    cursor:hand;
+    font-weight:bold;
+    text-align:center;
+    vertical-align:middle
+}
+table.table-sort thead td{
+    cursor:pointer;
+    cursor:hand;
+    font-weight:bold;
+    text-align:center;
+    vertical-align:middle
+}
+.rows{
+    display: inline-block;
+}
+.rows span {
+    display:block;
+    font-size: 30%;
+    margin-left: 10px;
+    color: #3A8356;
+}
+
+.tool_tip {
+    position: relative;
+}
+
+/*стиль для tooltip*/
+.tool_tip .tooltiptext{
+    visibility: visible;
+    font-size: 100%;
+    width: 193px;
+    background-color: #555;
+    color: #fff;
+    border-radius: 197px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -100px;
+}
+.tool_tip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+/********************/

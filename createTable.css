@@ -1,0 +1,21 @@
+.header {
+    cursor:pointer;
+    font-weight:bold;
+    text-align:center;
+    margin-top: 51px;
+}
+
+.header span{
+    margin-left:60px;
+    margin-top:50px;
+}
+.header button{
+    margin-left:60px;
+}
+.container {
+
+}
+
+.container table{
+   margin:auto;
+}
