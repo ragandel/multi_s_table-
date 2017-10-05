@@ -36,4 +36,4 @@ multi_s_table.js представляет собой алгоритм сорти
 3. Определение формата тегов и данных в сортируемом столбце таблицы. 
 4. Сортировка строк таблицы на основе собранных данных в п3.
 
-![Внешний вид](https://github.com/ragandel/multi_s_table-/raw/master/img/IUXNYfOr-QQ.jpg)
+![Внешний вид](https://github.com/ragandel/multi_s_table-/raw/master/img/Ex1.png)
