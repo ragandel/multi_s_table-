@@ -10,47 +10,53 @@ function SortTable (id_table, arrNotSortCells){
 			_time_date: /[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9]\s[1-9][0-9]{3}\-[0-1][0-9]\-[0-3][0-9]/
 		},
 		_span_block : {
-			_span_arrow: "<span class='rows'> <span class='up'> &#9650 </span> <span class='down'> &#9660 </span> </span>",
+			_span_arrow: "<span class='rows'> <span class='up'> &#9650 </span>"+
+			    "<span class='down'> &#9660 </span> </span>",
 			_span_tTip: "<span class='tooltiptext'> Столбец пустой </span>"
+		},
+		_ptotocols:{
+                        _http: 'http://',
+			_https: 'https://'
 		}
 	}
         var namesTab = id_table.concat(config.nameClass);     //массив содержащий ID и класс сортируемых табли
-	var fSort = 1;                                        //направление сортировки
+	var fSort = 1;                                             //направление сортировки
 	var indCell;                                          //индекс сортируемого столбца
 	var id_T;                                             //текущий ID или Class сортируемой таблицы
 	
-	function toolTip(){
+	function del_toolTip(){
 		//удаление подсказки
                 let tr_head = $(this).parent();
 		tr_head.find('.tooltiptext').remove();
 		tr_head.find('.tool_tip').removeClass('tool_tip');
 	}
 	
-	function trSort(arrData, arrObj, index) {
+	function trSort(arrData, arrObj, index_arr) {
 		//функция возвращает отсортированный объект строк
 	        let  count = arrObj.length;
 		let  arrEnd = [];
 		
 		for (let i = 0; i < count; ++i){
 			for (let j = 0; j < count -1; ++j){
-				if ((fSort == 1 && arrData[j] > arrData[j+1]) ||
-					(fSort != 1) && arrData[j] < arrData[j+1]) {
+				if ((fSort && (arrData[j] > arrData[j+1])) ||
+					(!fSort && (arrData[j] < arrData[j+1]))) {
 					let item_1;
 					let item_2;
 					
 					item_1 = arrData[j];
 					arrData[j] = arrData[j+1];
 					arrData[j+1] = item_1;
-					item_2 = index[j];
-					index[j] = index[j+1];
-					index[j+1] = item_2;
+					item_2 = index_arr[j];
+					index_arr[j] = index_arr[j+1];
+					index_arr[j+1] = item_2;
 				}
 			}
 		}
 		
-                index.forEach(function(item){
+                index_arr.forEach(function(item){
                         //добавляем отсортированные строки таблицы в новый массив
-	                arrEnd.push(arrObj[item]);
+                        let index = item;
+	                arrEnd.push(arrObj[index]);
                 })
 		return arrEnd;
 	}
@@ -59,30 +65,17 @@ function SortTable (id_table, arrNotSortCells){
 		let arrTr = [];                 //масиив строк tr текущей таблицы
 		let value;                      //значение ячейки
 		let empty = 0;                  //показатель пустых ячеек
-		let notSortFlag = 0;            //флаг отмены сортировки
-	        let _arr = {
-                        _index: {
-                        	_ABC: [],
-                                _Number: [],    //индексы строк с числовыми данными
-                                _Space: [],     //индексы строк с неопределенными данными
-                                _IP: [],        //индекс IP строк
-                                _date: []       //индекс даты
-                        },
-                        _data: {
-                                _abc: [],       //массив строк
-                                _number: [],    //массив  для числовых данных
-                                _ip: [],        //массив IP адресов
-                                _date: []       //массив  для хранения даты в ms
-                        },
-		        _name_domen:{
-                                _http: 'http://',
-			        _https: 'https://'
-		        }
+	        let dateTypes = {
+                        abc: {index: [], data: []},
+                        number: {index: [], data: []},
+                        ip: {index: [], data: []},
+                        date: {index: [], data: []},
+                        space: {index: [], data: []},
                 }
-                
-		//массив объектов строк
+
 		arrTr = $(id_T).find('tbody tr');
-		
+		//массив объектов строк
+
 		function genAlp(value,i){
 			let valueStore;
 			
@@ -90,56 +83,56 @@ function SortTable (id_table, arrNotSortCells){
 			if(value.length <= 0){
 				//формирование алфавита пустых ячееек
 				++empty;                             //счетчик пустых ячеек
-				_arr._index._Space.push(i);          //индекс пустых ячеек
+				dateTypes.space.index.push(i);          //индекс пустых ячеек
 				return;
 			}
-			
-			if ((isNaN(value))) {
-				if( valueStore = value.match(config.regExp._ip)) {
-					//формирование алфавита IP
-					let IP = String(valueStore).split('.');
-					let hashIP = (IP[0]*16777216)  + (IP[1]*65536)  + (IP[2]*256) + IP[3]*1;
-					_arr._data._ip.push(hashIP);
-					_arr._index._IP.push(i);
-				}else if(value.match(config.regExp._time) ||
-					value.match(config.regExp._date)){
-					//анализ и формирование Date
-                                        if(valueStore = value.match(config.regExp._date_time)){
-	                                        //если формат " ****-**-** **:**:** "
-	                                        _arr._data._date.push(Date.parse(valueStore));
-	                                        _arr._index._date.push(i);
-                                        }else if(valueStore = value.match(config.regExp._time_date)){
-	                                        //если формат " **:**:** ****-**-** "
-	                                        _arr._data._date.push(Date.parse(valueStore));      //сохраняем в массиве дату в ms
-	                                        _arr._index._date.push(i);
-                                        }else if(valueStore = value.match(config.regExp._date)){
-	                                        //если формат " ****-**-** "
-	                                        _arr._data._date.push(Date.parse(valueStore));      //сохраняем в массиве дату в ms
-	                                        _arr._index._date.push(i);
-                                        }else if(valueStore = value.match(config.regExp._time)){
-	                                        //если формат " **:**:** "
-	                                        let elDate = String(valueStore).split(':');
-	                                        let storDate = elDate[0]*100 + elDate[1]*10 + elDate[2] + Date.now();
-	                                        _arr._data._date.push(storDate);
-	                                        _arr._index._date.push(i);
-                                        }
-				}else if((valueStore = value.substr(0,8) == _arr._name_domen._https) ||
-						(valueStore = value.substr(0,7) == _arr._name_domen._http)){
-					//формирование алфавита Domen
-					if(valueStore.length == 8)
-						_arr._data._abc.push(value[8].toLowerCase());
-					else
-						_arr._data._abc.push(value[7].toLowerCase());
-					_arr._index._ABC.push(i);
-				}else {
-					//формирование алфавита строки
-					_arr._data._abc.push(value[0].toLowerCase());
-					_arr._index._ABC.push(i);
-				}
+
+			if (!isNaN(value)){
+			        //формирование алфавита чисел
+				dateTypes.number.data.push(+value);
+				dateTypes.number.index.push(i);
+			        return;
+			}
+			if( valueStore = value.match(config.regExp._ip)) {
+				//формирование алфавита IP
+				let IP = String(valueStore).split('.');
+				let hashIP = (IP[0]*16777216)  + (IP[1]*65536)  + (IP[2]*256) + IP[3]*1;
+				dateTypes.ip.data.push(hashIP);
+				dateTypes.ip.index.push(i);
+			}else if(value.match(config.regExp._time) ||
+				value.match(config.regExp._date)){
+				//анализ и формирование Date
+                                if(valueStore = value.match(config.regExp._date_time)){
+	                                //если формат " ****-**-** **:**:** "
+	                                dateTypes.date.data.push(Date.parse(valueStore));
+	                                dateTypes.date.index.push(i);
+                                }else if(valueStore = value.match(config.regExp._time_date)){
+	                                //если формат " **:**:** ****-**-** "
+	                                dateTypes.date.data.push(Date.parse(valueStore));      //сохраняем в массиве дату в ms
+	                                dateTypes.date.index.push(i);
+                                }else if(valueStore = value.match(config.regExp._date)){
+	                                //если формат " ****-**-** "
+	                                dateTypes.date.data.push(Date.parse(valueStore));      //сохраняем в массиве дату в ms
+	                                dateTypes.date.index.push(i);
+                                }else if(valueStore = value.match(config.regExp._time)){
+	                                //если формат " **:**:** "
+	                                let elDate = String(valueStore).split(':');
+	                                let storDate = elDate[0]*100 + elDate[1]*10 + elDate[2] + Date.now();
+	                                dateTypes.date.data.push(storDate);
+	                                dateTypes.date.index.push(i);
+                                }
+			}else if(((valueStore = value.substr(0,8)) == config._ptotocols._https) ||
+					((valueStore = value.substr(0,7)) == config._ptotocols._http)){
+				//формирование алфавита Domen
+				if(valueStore.length == 8)
+					dateTypes.abc.data.push(value[valueStore.length].toLowerCase());
+				else
+					dateTypes.abc.data.push(value[valueStore.length].toLowerCase());
+				        dateTypes.abc.index.push(i);
 			}else {
-				//формирование алфавита чисел
-				_arr._data._number.push(+value);
-				_arr._index._Number.push(i);
+				//формирование алфавита строки
+				dateTypes.abc.data.push(value[0].toLowerCase());
+				dateTypes.abc.index.push(i);
 			}
 		}
 		
@@ -153,15 +146,15 @@ function SortTable (id_table, arrNotSortCells){
 					genAlp(value,i);
 				} else if(el_Input.filter(':hidden').length > 0) {
 					++empty;                                        //счетчик пустых ячеек
-					_arr._index._Space.push(i);                     //индекс пустых ячеек
+					dateTypes.space.index.push(i);                     //индекс пустых ячеек
 				}else if(el_Input.filter(':checkbox').length > 0) {
 					value = el_Input.filter(':checkbox');
 					if (value.prop('checked') == true) {
-						_arr._data._number.push(1);
-						_arr._index._Number.push(i);
+						dateTypes.number.data.push(1);
+						dateTypes.number.index.push(i);
 					}else {
 						++empty;                                 //счетчик пустых ячеек
-						_arr._index._Space.push(i);              //индекс пустых ячеек
+						dateTypes.space.index.push(i);              //индекс пустых ячеек
 					}
 				}
 			} else if ($(val).find('select').length > 0){
@@ -179,22 +172,21 @@ function SortTable (id_table, arrNotSortCells){
 		})
 		
 		if (empty == arrTr.length){
-			notSortFlag = 1;
-			return;
+			return true;
 		}
 		//если столбец не пустой
 		//очищаем DOM от предыдущей таблицы
 		let tbodyNew = $(id_T).find('tbody').empty();
 		let _arr_data_ind = [
-			{data: _arr._data._number, index: _arr._index._Number},
-			{data: _arr._data._date, index: _arr._index._date},
-			{data: _arr._data._ip, index: _arr._index._IP},
-			{data: _arr._data._abc, index: _arr._index._ABC}
+			{data: dateTypes.number.data, index: dateTypes.number.index},
+			{data: dateTypes.date.data, index: dateTypes.date.index},
+			{data: dateTypes.ip.data, index: dateTypes.ip.index},
+			{data: dateTypes.abc.data, index: dateTypes.abc.index}
 		];
 		if (fSort == 1){
-			if (_arr._index._Space.length){
+			if (dateTypes.space.index.length){
 				//добавление алфавита пустых ячеек
-				_arr._index._Space.forEach(function(item, i, arr){tbodyNew.append(arrTr[item]);});
+				dateTypes.space.index.forEach(function(item, i, arr){tbodyNew.append(arrTr[item]);});
 			};
 			_arr_data_ind.forEach(function(item, i){
 				if(item.data.length > 0)
@@ -206,11 +198,11 @@ function SortTable (id_table, arrNotSortCells){
 					tbodyNew.append(trSort(_arr_data_ind[_arr_data_ind.length - index - 1].data,
 						arrTr,_arr_data_ind[_arr_data_ind.length - index - 1].index));
 			});
-			if (_arr._index._Space.length){
-				_arr._index._Space.forEach(function(item, i, arr){tbodyNew.append(arrTr[item]);});
+			if (dateTypes.space.index.length){
+				dateTypes.space.index.forEach(function(item, i, arr){tbodyNew.append(arrTr[item]);});
 			}
 		}
-		return notSortFlag;
+		return false;
 	}
 	
 	if(namesTab.length > 0){
@@ -227,30 +219,32 @@ function SortTable (id_table, arrNotSortCells){
 		id_T = (_this_table.attr('id')) ?  ('#' + _this_table.attr('id')) : ('.' + _this_table.attr('class'));
 		
                 indCell = $(this).index();
-                
-                if (arrNotSortCells.indexOf(indCell) == -1){    //проверка что  в arrNotSortCells нет indCell
-                        let notSortFlag = selectData();         //1 - столбец пустой, иначе 0
-                        
-	                if(notSortFlag){
-		                //проверка индекса столбца на сортировку
-		                //обавляем класс tooltip
-		                $(this).addClass('tool_tip');
-		                $(config._span_block._span_tTip).appendTo($(this));
-		                setTimeout(toolTip.bind(this), 1000);
-		                $(id_T).find('.up, .down').css('visibility', 'visible');
-		                return
-	                }
-	                //восстанавливаем исходные стрелки и очищаем таблицу от данного id таблицы
-	                $(id_T).find('.up, .down').css('visibility', 'visible');
-	                
-	                let _css_arrow = (fSort) ? 'visible' : 'hidden';
-	                let _css_not_arrow = (fSort) ? 'hidden' : 'visible';
-		
-	                $(id_T).find('.down').eq(indCell).css('visibility', _css_not_arrow);
-	                $(id_T).find('.up').eq(indCell).css('visibility', _css_arrow);
-		
-	                fSort ^= 1;
+
+                if (arrNotSortCells.indexOf(indCell) != -1){
+                        return;
                 }
+                //проверка что  в arrNotSortCells нет indCell
+                let notSortFlag = selectData();         //1 - столбец пустой, иначе 0
+                        
+	        if(notSortFlag){
+		        //проверка индекса столбца на сортировку
+		        //добавляем класс tooltip
+		        $(this).addClass('tool_tip');
+		        $(config._span_block._span_tTip).appendTo($(this));
+		        setTimeout(del_toolTip.bind(this), 1000);
+		        $(id_T).find('.up, .down').css('visibility', 'visible');
+		        return
+	        }
+	        //восстанавливаем исходные стрелки и очищаем таблицу от данного id таблицы
+	        $(id_T).find('.up, .down').css('visibility', 'visible');
+
+	        let _css_arrow = (fSort) ? 'visible' : 'hidden';
+	        let _css_not_arrow = (fSort) ? 'hidden' : 'visible';
+
+	        $(id_T).find('.down').eq(indCell).css('visibility', _css_not_arrow);
+	        $(id_T).find('.up').eq(indCell).css('visibility', _css_arrow);
+
+	        fSort ^= 1;
         });
 }
 
