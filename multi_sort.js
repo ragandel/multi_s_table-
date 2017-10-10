@@ -7,7 +7,9 @@ function SortTable (id_table, arrNotSortCells){
 			_time: /[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9]/,
 			_date: /[1-9][0-9]{3}\-[0-1][0-9]\-[0-3][0-9]/,
 			_date_time: /[1-9][0-9]{3}\-[0-1][0-9]\-[0-3][0-9]\s[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9]/,
-			_time_date: /[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9]\s[1-9][0-9]{3}\-[0-1][0-9]\-[0-3][0-9]/
+			_time_date: /[0-2][0-9]\:[0-5][0-9]\:[0-5][0-9]\s[1-9][0-9]{3}\-[0-1][0-9]\-[0-3][0-9]/,
+			_http: /http:/i,
+			_https: /https:/i
 		},
 		_span_block : {
 			_span_arrow: "<span class='rows'> <span class='up'> &#9650 </span>"+
@@ -19,7 +21,7 @@ function SortTable (id_table, arrNotSortCells){
 			_https: 'https://'
 		}
 	}
-        var namesTab = id_table.concat(config.nameClass);     //массив содержащий ID и класс сортируемых табли
+        var namesTable = id_table.concat(config.nameClass);     //массив содержащий ID и класс сортируемых табли
 	var fSort = 1;                                             //направление сортировки
 	var indCell;                                          //индекс сортируемого столбца
 	var id_T;                                             //текущий ID или Class сортируемой таблицы
@@ -34,7 +36,6 @@ function SortTable (id_table, arrNotSortCells){
 	function trSort(arrData, arrObj, index_arr) {
 		//функция возвращает отсортированный объект строк
 	        let  count = arrObj.length;
-		let  arrEnd = [];
 		
 		for (let i = 0; i < count; ++i){
 			for (let j = 0; j < count -1; ++j){
@@ -53,12 +54,20 @@ function SortTable (id_table, arrNotSortCells){
 			}
 		}
 		
+		/*
+		let  arrEnd = [];
                 index_arr.forEach(function(item){
-                        //добавляем отсортированные строки таблицы в новый массив
+                        
                         let index = item;
 	                arrEnd.push(arrObj[index]);
                 })
-		return arrEnd;
+		*/
+		
+		return index_arr.map(function(name){
+			//массив с отсортированными строками
+			let index = name;
+			return arrObj[index];
+		});
 	}
  
 	function selectData(){
@@ -122,13 +131,13 @@ function SortTable (id_table, arrNotSortCells){
 	                                dateTypes.date.index.push(i);
                                 }
 			}else if(((valueStore = value.substr(0,8)) == config._ptotocols._https) ||
-					((valueStore = value.substr(0,7)) == config._ptotocols._http)){
+				((valueStore = value.substr(0,7)) == config._ptotocols._http)){
 				//формирование алфавита Domen
 				if(valueStore.length == 8)
 					dateTypes.abc.data.push(value[valueStore.length].toLowerCase());
 				else
 					dateTypes.abc.data.push(value[valueStore.length].toLowerCase());
-				        dateTypes.abc.index.push(i);
+				dateTypes.abc.index.push(i);
 			}else {
 				//формирование алфавита строки
 				dateTypes.abc.data.push(value[0].toLowerCase());
@@ -186,7 +195,7 @@ function SortTable (id_table, arrNotSortCells){
 		if (fSort == 1){
 			if (dateTypes.space.index.length){
 				//добавление алфавита пустых ячеек
-				dateTypes.space.index.forEach(function(item, i, arr){tbodyNew.append(arrTr[item]);});
+				dateTypes.space.index.forEach(function(item){tbodyNew.append(arrTr[item]);});
 			};
 			_arr_data_ind.forEach(function(item, i){
 				if(item.data.length > 0)
@@ -199,21 +208,30 @@ function SortTable (id_table, arrNotSortCells){
 						arrTr,_arr_data_ind[_arr_data_ind.length - index - 1].index));
 			});
 			if (dateTypes.space.index.length){
-				dateTypes.space.index.forEach(function(item, i, arr){tbodyNew.append(arrTr[item]);});
+				dateTypes.space.index.forEach(function(item){tbodyNew.append(arrTr[item]);});
 			}
 		}
+		
 		return false;
+		
 	}
 	
-	if(namesTab.length > 0){
-		//стартовая прорисовка указателей сортировки
-		namesTab.forEach(function(item){
+	if(namesTable.length > 0){
+		namesTable.forEach(function(item){
+			//стартовая прорисовка указателей сортировки
 			$(item + ' thead').find('.rows').remove();
 			$(config._span_block._span_arrow).appendTo($(item + ' thead').find('th, td'));
 		})
+		
+		/*
+		let namesTable_str = namesTable.join(',');
+		$(namesTable_str+ ' thead').find('.rows').remove();
+		$(config._span_block._span_arrow).appendTo($(namesTable_str + ' thead').find('th, td'));
+		*/
 	}
 	
-	$(namesTab.join(',')).find('th').click(function() {
+	$(namesTable.join(',')).find('th').click(function() {
+		let start = Date.now();
         	let _this_table = $(this).parents('table');     //записываем имя ID или CLass сортируемой таблицы
 		
 		id_T = (_this_table.attr('id')) ?  ('#' + _this_table.attr('id')) : ('.' + _this_table.attr('class'));
@@ -237,14 +255,17 @@ function SortTable (id_table, arrNotSortCells){
 	        }
 	        //восстанавливаем исходные стрелки и очищаем таблицу от данного id таблицы
 	        $(id_T).find('.up, .down').css('visibility', 'visible');
-
-	        let _css_arrow = (fSort) ? 'visible' : 'hidden';
-	        let _css_not_arrow = (fSort) ? 'hidden' : 'visible';
-
-	        $(id_T).find('.down').eq(indCell).css('visibility', _css_not_arrow);
+		
+		let _css_not_arrow = (fSort) ? 'hidden' : 'visible';
+		$(id_T).find('.down').eq(indCell).css('visibility', _css_not_arrow);
+		
+		let _css_arrow = (fSort) ? 'visible' : 'hidden';
 	        $(id_T).find('.up').eq(indCell).css('visibility', _css_arrow);
 
 	        fSort ^= 1;
+		//меняем направление сортировки
+		
+		console.log("Время конца сортировки" + " " + (Date.now() - start) + "ms");
         });
 }
 
