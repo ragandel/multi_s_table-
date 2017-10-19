@@ -11,12 +11,12 @@ function SortTable (id_table, arrNotSortCells){
 			_http: /http:/i,
 			_https: /https:/i
 		},
-		_span_block : {
+		_span_block: {
 			_span_arrow: "<span class='rows'> <span class='up'> &#9650 </span>"+
 			    "<span class='down'> &#9660 </span> </span>",
 			_span_tTip: "<span class='tooltiptext'> Столбец пустой </span>"
 		},
-		_ptotocols:{
+		_ptotocols: {
                         _http: 'http://',
 			_https: 'https://'
 		}
@@ -26,7 +26,7 @@ function SortTable (id_table, arrNotSortCells){
 	var indCell;                                           //индекс сортируемого столбца
 	var id_T;                                              //текущий ID или Class сортируемой таблицы
 	
-	function del_toolTip(){
+	function del_toolTip() {
 		//удаление подсказки
                 let tr_head = $(this).parent();
 		tr_head.find('.tooltiptext').remove();
@@ -79,7 +79,7 @@ function SortTable (id_table, arrNotSortCells){
 			let valueStore;
 			
 			//метод формирования алфавита IP, Date, Domen, string, number, empty
-			if(value.length <= 0){
+			if(value.length <= 0) {
 				//формирование алфавита пустых ячееек
 				++empty;                             //счетчик пустых ячеек
 				dateTypes.space.index.push(i);          //индекс пустых ячеек
@@ -205,6 +205,13 @@ function SortTable (id_table, arrNotSortCells){
 			//стартовая прорисовка указателей сортировки
 			$(item + ' thead').find('.rows').remove();
 			$(config._span_block._span_arrow).appendTo($(item + ' thead').find('th, td'));
+			//стиль стрелок
+			$('.rows').css({'display': 'inline-block'});
+			$('.rows span').css({'display':'block',
+			                     'font-size': '30%',
+			                     'margin-left': '10px',
+			                     'color': '#3A8356'
+			                    });
 		})
 	}
 
@@ -227,6 +234,32 @@ function SortTable (id_table, arrNotSortCells){
 		        //добавляем класс tooltip
 		        $(this).addClass('tool_tip');
 		        $(config._span_block._span_tTip).appendTo($(this));
+		        $('.tool_tip').css({'position': 'relative'});
+		        $('.tool_tip .tooltiptext').css({ 'visibility': 'visible',
+                                                          'font-size': '100%',
+                                                          'width': '193px',
+                                                          'background-color': '#555',
+                                                          'color': '#fff',
+                                                          'border-radius': '197px',
+                                                          'padding': '5px 0',
+                                                          'position': 'absolute',
+                                                          'z-index': '1',
+                                                          'bottom': '100%',
+                                                          'left': '50%',
+                                                          'margin-left': '-100px'
+                                                         });
+
+                        $('.tool_tip .tooltiptext::after').css({ 'visibility': 'visible',
+                                                                 'content': "",
+                                                                 'position': 'absolute',
+                                                                 'top': '100%',
+                                                                 'left': '50%',
+                                                                 'margin-left': '-5px',
+                                                                 'border-width': '5px',
+                                                                 'border-style': 'solid',
+                                                                 'border-color': '#555 transparent transparent transparent'
+                                                         });
+			
 		        setTimeout(del_toolTip.bind(this), 1000);
 		        $(id_T).find('.up, .down').css('visibility', 'visible');
 		        return
@@ -246,4 +279,3 @@ function SortTable (id_table, arrNotSortCells){
 		console.log("Время конца сортировки" + " " + (Date.now() - start) + "ms");
         });
 }
-
